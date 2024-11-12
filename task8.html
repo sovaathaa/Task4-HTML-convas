@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Interactive Drawing App with Undo and Clear</title>
+  <style>
+    canvas {
+      border: 1px solid #000;
+      cursor: crosshair;
+    }
+    button {
+      margin: 10px;
+      padding: 10px;
+      font-size: 16px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Drawing App</h1>
+  <button id="undoButton">Undo</button>
+  <button id="clearButton">Clear</button>
+  <canvas id="drawingCanvas" width="600" height="400"></canvas>
+  <script>
+    const canvas = document.getElementById('drawingCanvas');
+    const ctx = canvas.getContext('2d');
+    let isDrawing = false;
+    const actions = []; // Stack to store drawing history
+    let currentImage = null; // Store the current drawing state
+
+    // Set up event listeners for mouse actions
+    canvas.addEventListener('mousedown', (e) => {
+      isDrawing = true;
+      ctx.beginPath();
+      ctx.moveTo(e.offsetX, e.offsetY);
+      saveState();
+    });
+
+    canvas.addEventListener('mousemove', (e) => {
+      if (isDrawing) {
+        ctx.lineTo(e.offsetX, e.offsetY);
+        ctx.strokeStyle = 'black';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      }
+    });
+
+    canvas.addEventListener('mouseup', () => {
+      if (isDrawing) {
+        saveState();
+        isDrawing = false;
+      }
+    });
+
+    canvas.addEventListener('mouseout', () => {
+      isDrawing = false;
+    });
+
+    // Undo functionality
+    document.getElementById('undoButton').addEventListener('click', () => {
+      if (actions.length > 0) {
+        const lastAction = actions.pop();
+        const img = new Image();
+        img.onload = () => {
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          ctx.drawImage(img, 0, 0);
+        };
+        img.src = lastAction;
+      } else {
+        clearCanvas();
+      }
+    });
+
+    // Clear functionality
+    document.getElementById('clearButton').addEventListener('click', () => {
+      clearCanvas();
+      actions.length = 0; // Reset the history
+    });
+
+    // Save the current canvas state
+    function saveState() {
+      currentImage = canvas.toDataURL();
+      actions.push(currentImage);
+    }
+
+    // Clear the entire canvas
+    function clearCanvas() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+  </script>
+</body>
+</html>
